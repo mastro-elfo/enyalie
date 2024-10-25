@@ -1,6 +1,6 @@
-from nicegui import app, ui
+from nicegui import ui
 
-app.add_static_files("/assets", "./assets")
+from pack import db, fs
 
 HOME = (43.575, 10.775)
 HOME_ZOOM = 13
@@ -16,9 +16,9 @@ def dashboard():
     ui.colors(primary=PRIMARY, secondary=SECONDARY, accent=ACCENT, positive=POSITIVE)
     ui.query(".nicegui-content").classes("absolute top-0 bottom-0 left-0 right-0 p-0")
     ui.add_head_html(
-        "<style>@font-face { font-family: 'Elfic-Cursive'; src: url('/assets/fonts/"
-        "Tangerine-Regular.ttf'); font-weight: normal; font-style: normal;"
-        " }</style>"
+        '<link rel="preconnect" href="https://fonts.googleapis.com">'
+        '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+        '<link href="https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">'
     )
 
     def handle_back_to_home(leaflet):
@@ -39,11 +39,16 @@ def dashboard():
 
     with ui.header().classes("items-center justify-between"):
         ui.label("Enyalie").style(
-            "font-family: 'Elfic-Cursive', sans-serif; font-size: 80px;"
+            'font-family: "Tangerine", Arial, sans-serif; font-size: 80px;'
             "position: absolute; bottom: -0.45em; left: 0.06125em;"
             "text-shadow: 1px 1px 1px black;"
         )
         ui.space()
+
+        connected = db.is_connected()
+        with ui.icon("power" if connected else "power_off", size="1.2em"):
+            ui.tooltip("Connected to db" if connected else "Disconnected from db")
+
         with ui.button_group().props("outline"):
             ui.button(
                 "Home",
@@ -73,5 +78,12 @@ def dashboard():
         center=HOME, zoom=HOME_ZOOM, options={"zoomControl": False}
     ).classes("flex-auto")
 
+    print("Paths")
+    for path in db.get_all_paths():
+        leaflet.generic_layer(
+            name="polyline",
+            args=[fs.get_trkpts_from_file(path["file"]), {"color": "red"}],
+        )
 
-ui.run()
+
+ui.run(title="Enyalie")
