@@ -3,8 +3,8 @@ import sqlite3
 
 
 class Database:
-    _APPDATA = f"{os.getenv('APPDATA')}/enyalie"
-    _DBFILE = f"{_APPDATA}/enyalie.db"
+    _APPDATA = ""
+    _DBFILE = ""
 
     def __init__(self, appdata: str = f"{os.getenv('APPDATA')}/enyalie"):
         self._APPDATA = appdata

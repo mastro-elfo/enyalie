@@ -1,6 +1,8 @@
 from nicegui import ui
 
-from pack import db, fs
+from pack import fs
+from pack.db import Database
+from pack.settings import Settings
 
 HOME = (43.575, 10.775)
 HOME_ZOOM = 13
@@ -9,7 +11,8 @@ SECONDARY = "#4caf50"
 ACCENT = "#111B1E"
 POSITIVE = "#53B689"
 
-database = db.Database("./APPDATA")
+database = Database("./APPDATA")
+settings = Settings("./APPDATA")
 
 
 @ui.page("/")
