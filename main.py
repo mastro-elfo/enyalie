@@ -9,6 +9,8 @@ SECONDARY = "#4caf50"
 ACCENT = "#111B1E"
 POSITIVE = "#53B689"
 
+database = db.Database("./APPDATA")
+
 
 @ui.page("/")
 def dashboard():
@@ -45,7 +47,7 @@ def dashboard():
         )
         ui.space()
 
-        connected = db.is_connected()
+        connected = database.is_connected()
         with ui.icon("power" if connected else "power_off", size="1.2em"):
             ui.tooltip("Connected to db" if connected else "Disconnected from db")
 
@@ -78,12 +80,16 @@ def dashboard():
         center=HOME, zoom=HOME_ZOOM, options={"zoomControl": False}
     ).classes("flex-auto")
 
-    print("Paths")
-    for path in db.get_all_paths():
+    for path in database.get_all_paths():
         leaflet.generic_layer(
             name="polyline",
             args=[fs.get_trkpts_from_file(path["file"]), {"color": "red"}],
         )
 
 
-ui.run(title="Enyalie")
+def main():
+    ui.run(title="Enyalie")
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    main()
