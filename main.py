@@ -10,6 +10,9 @@ PRIMARY = "#482880"
 SECONDARY = "#4caf50"
 ACCENT = "#111B1E"
 POSITIVE = "#53B689"
+NEGATIVE = "#c10015"
+INFO = "#31ccec"
+WARNING = "#f2c037"
 
 database = Database("./APPDATA")
 settings = Settings("./APPDATA")
@@ -51,7 +54,11 @@ def dashboard():
         ui.space()
 
         connected = database.is_connected()
-        with ui.icon("power" if connected else "power_off", size="1.2em"):
+        with ui.icon(
+            "power" if connected else "power_off",
+            size="1.2em",
+            color="positive" if connected else "negative",
+        ):
             ui.tooltip("Connected to db" if connected else "Disconnected from db")
 
         with ui.button_group().props("outline"):
