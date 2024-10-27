@@ -2,7 +2,6 @@ from nicegui import ui
 
 from pack import fs
 from pack.db import Database
-from pack.settings import Settings
 
 HOME = (43.575, 10.775)
 HOME_ZOOM = 13
@@ -15,7 +14,6 @@ INFO = "#31ccec"
 WARNING = "#f2c037"
 
 database = Database("./APPDATA")
-settings = Settings("./APPDATA")
 
 
 @ui.page("/")
@@ -29,6 +27,8 @@ def dashboard():
         '<link href="https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">'
     )
 
+    config = database.get_config()
+
     def handle_back_to_home(leaflet):
         leaflet.set_center(HOME)
         leaflet.set_zoom(HOME_ZOOM)
@@ -39,7 +39,12 @@ def dashboard():
 
     with ui.dialog() as settings_dialog, ui.card():
         ui.label("Settings").style("font-size: 2em;")
-        ui.button("Close", on_click=settings_dialog.close)
+        with ui.grid(columns=2):
+            ui.label(f"Path dir: {config.get("pathdir", "")}")
+        ui.separator()
+        with ui.element().classes("flex flex-row w-full"):
+            ui.space()
+            ui.button("Close", on_click=settings_dialog.close)
 
     with ui.dialog() as filters_dialog, ui.card():
         ui.label("Filters").style("font-size: 2em;")

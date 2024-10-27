@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from typing import Any
 
 
 class Database:
@@ -14,11 +15,25 @@ class Database:
             cursor = connection.cursor()
             cursor.execute(
                 """
-                CREATE TABLE IF NOT EXISTS "path" (
+                CREATE TABLE IF NOT EXISTS paths (
                     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                     title TEXT,
                     file TEXT NOT NULL
-                );"""
+                );
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS config (
+                    "key" TEXT NOT NULL,
+                    integerValue INTEGER,
+                    numericValue NUMERIC,
+                    realValue INTEGER,
+                    textValue TEXT,
+                    blobValue BLOB,
+                    CONSTRAINT config_pk PRIMARY KEY ("key")
+                );
+                """
             )
 
     def is_connected(self):
@@ -27,10 +42,28 @@ class Database:
         return False
 
     def get_all_paths(self):
-        print("get all paths", self._DBFILE)
         with sqlite3.connect(f"{self._DBFILE}") as connection:
             cursor = connection.cursor()
-            cursor.execute("SELECT id, title, file FROM path")
-            return [
-                {"id": x[0], "title": x[1], "file": x[2]} for x in cursor.fetchall()
-            ]
+            cursor.execute("SELECT id, title, file FROM paths")
+            return [self._map(x, ["id", "title", "file"]) for x in cursor.fetchall()]
+
+    def get_config(self):
+        with sqlite3.connect(f"{self._DBFILE}") as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "SELECT key, integerValue, numericValue, realValue, textValue, blobValue FROM config"
+            )
+            return {x[0]: self._not_none(x[1:]) for x in cursor.fetchall()}
+
+    def _map(self, result: list[Any], fields: list[str]):
+        return {
+            field: result[index]
+            for index, field in enumerate(fields)
+            if len(result) > index
+        }
+
+    def _not_none(self, seq: list[Any]):
+        for value in seq:
+            if value is not None:
+                return value
+        return None
