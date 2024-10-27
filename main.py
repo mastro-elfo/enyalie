@@ -35,7 +35,10 @@ def dashboard():
 
     with ui.dialog() as new_path_dialog, ui.card():
         ui.label("New path").style("font-size: 2em;")
-        ui.button("Close", on_click=new_path_dialog.close)
+        ui.separator()
+        with ui.element().classes("flex flex-row w-full"):
+            ui.space()
+            ui.button("Close", on_click=new_path_dialog.close)
 
     with ui.dialog() as settings_dialog, ui.card():
         ui.label("Settings").style("font-size: 2em;")
@@ -53,7 +56,10 @@ def dashboard():
 
     with ui.dialog() as filters_dialog, ui.card():
         ui.label("Filters").style("font-size: 2em;")
-        ui.button("Close", on_click=filters_dialog.close)
+        ui.separator()
+        with ui.element().classes("flex flex-row w-full"):
+            ui.space()
+            ui.button("Close", on_click=filters_dialog.close)
 
     with ui.header().classes("items-center justify-between"):
         ui.label("Enyalie").style(
