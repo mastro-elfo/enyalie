@@ -55,6 +55,22 @@ class Database:
             )
             return {x[0]: self._not_none(x[1:]) for x in cursor.fetchall()}
 
+    def set_config(self, key: str, value: Any):
+        with sqlite3.connect(f"{self._DBFILE}") as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "REPLACE INTO config (key, integerValue, numericValue, realValue, textValue, blobValue) VALUES (?,?,?,?,?,?)",
+                (
+                    key,
+                    value if isinstance(value, int) else None,
+                    value if isinstance(value, (float, int)) else None,
+                    value if isinstance(value, (float, int)) else None,
+                    value if isinstance(value, str) else None,
+                    value if isinstance(value, bytes) else None,
+                ),
+            )
+            connection.commit()
+
     def _map(self, result: list[Any], fields: list[str]):
         return {
             field: result[index]

@@ -40,7 +40,12 @@ def dashboard():
     with ui.dialog() as settings_dialog, ui.card():
         ui.label("Settings").style("font-size: 2em;")
         with ui.grid(columns=2):
-            ui.label(f"Path dir: {config.get("pathdir", "")}")
+            ui.input(
+                "Path dir",
+                validation={"Not a directory": fs.is_directory},
+                value=config.get("pathdir", ""),
+                on_change=lambda value: database.set_config("pathdir", value.value),
+            )
         ui.separator()
         with ui.element().classes("flex flex-row w-full"):
             ui.space()

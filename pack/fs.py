@@ -1,3 +1,4 @@
+import os
 import re
 import xml.etree.ElementTree as ET
 
@@ -18,3 +19,7 @@ def get_trkpts_from_file(filename: str):
         track.append(segment)
 
     return track
+
+
+def is_directory(path: str):
+    return os.path.isdir(path)
