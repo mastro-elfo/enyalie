@@ -15,7 +15,7 @@ def get_trkpts_from_file(filename: str):
             lat = trkpt.get("lat")
             lon = trkpt.get("lon")
             if lat is not None and lon is not None:
-                segment.append((float(lat), float(lon)))
+                segment.append([float(lat), float(lon)])
         track.append(segment)
 
     return track

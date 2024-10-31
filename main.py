@@ -1,6 +1,8 @@
 from nicegui import ui
 
-from pack import fs
+import pages
+import pages.edit_path
+from pack import fs, js
 from pack.db import Database
 
 HOME = (43.575, 10.775)
@@ -14,6 +16,7 @@ INFO = "#31ccec"
 WARNING = "#f2c037"
 
 database = Database("./APPDATA")
+selected_path = None
 
 
 @ui.page("/")
@@ -25,20 +28,37 @@ def dashboard():
         '<link rel="preconnect" href="https://fonts.googleapis.com">'
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
         '<link href="https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Tangerine:wght@400;700&display=swap" rel="stylesheet">'
+        f"<script>{js.POLYLINE}</script>"
     )
 
+    global selected_path
+    selected_path = None
     config = database.get_config()
 
     def handle_back_to_home(leaflet):
         leaflet.set_center(HOME)
         leaflet.set_zoom(HOME_ZOOM)
 
+    def handle_file_uploaded(filename: str):
+        response = database.create_new_path(f"{config.get("pathdir", "")}/{filename}")
+        edit_path_dialog.open()
+
     with ui.dialog() as new_path_dialog, ui.card():
         ui.label("New path").style("font-size: 2em;")
+        ui.upload(label="Path file", on_upload=lambda e: handle_file_uploaded(e.name))
         ui.separator()
         with ui.element().classes("flex flex-row w-full"):
             ui.space()
             ui.button("Close", on_click=new_path_dialog.close)
+
+    with ui.dialog() as edit_path_dialog, ui.card():
+        ui.label("Edit path").style("font-size: 2em;")
+        if selected_path:
+            ui.label(selected_path["title"])
+        ui.separator()
+        with ui.element().classes("flex flex-row w-full"):
+            ui.space()
+            ui.button("Close", on_click=edit_path_dialog.close)
 
     with ui.dialog() as settings_dialog, ui.card():
         ui.label("Settings").style("font-size: 2em;")
@@ -105,12 +125,30 @@ def dashboard():
     leaflet = ui.leaflet(
         center=HOME, zoom=HOME_ZOOM, options={"zoomControl": False}
     ).classes("flex-auto")
+    # leaflet.clear_layers()
+    # leaflet.tile_layer(
+    #     url_template=r"https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    #     options={
+    #         "maxZoom": 17,
+    #         "attribution": 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://viewfinderpanoramas.org/">SRTM</a> | '
+    #         'Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
+    #     },
+    # )
 
     for path in database.get_all_paths():
-        leaflet.generic_layer(
-            name="polyline",
-            args=[fs.get_trkpts_from_file(path["file"]), {"color": "red"}],
+        ui.run_javascript(
+            f"addPolyline({leaflet.id}, {path['id']}, {fs.get_trkpts_from_file(path['file'])})"
         )
+
+    def handle_polyline_click(event):
+        ui.navigate.to(f"/edit_path/{event.args["index"]}")
+
+    ui.on("polyline-click", handle_polyline_click)
+
+
+@ui.page("/edit_path/{path_id}")
+def edit_path(path_id):
+    pages.edit_path.edit_path()
 
 
 def main():

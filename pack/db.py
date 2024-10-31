@@ -37,18 +37,50 @@ class Database:
             )
 
     def is_connected(self):
-        with sqlite3.connect(f"{self._DBFILE}"):
+        with sqlite3.connect(self._DBFILE):
             return True
         return False
 
     def get_all_paths(self):
-        with sqlite3.connect(f"{self._DBFILE}") as connection:
+        with sqlite3.connect(self._DBFILE) as connection:
             cursor = connection.cursor()
             cursor.execute("SELECT id, title, file FROM paths")
             return [self._map(x, ["id", "title", "file"]) for x in cursor.fetchall()]
 
+    def get_path_by_id(self, id):
+        with sqlite3.connect(self._DBFILE) as connection:
+            cursor = connection.cursor()
+            cursor.execute("SELECT id, title, file FROM paths")
+            return self._map(
+                cursor.fetchone(),
+                [
+                    "id",
+                    "title",
+                    "file",
+                    "start",
+                    "end",
+                    "stops",
+                    "length",
+                    "duration",
+                    "dateTime",
+                    "altitudeDifference",
+                ],
+            )
+
+    def create_new_path(self, filepath: str):
+        with sqlite3.connect(self._DBFILE) as connection:
+            cursor = connection.cursor()
+            cursor.execute(
+                "INSERT INTO paths (title, file) VALUES (?,?)",
+                (os.path.basename(filepath), filepath),
+            )
+        with sqlite3.connect(self._DBFILE) as connection:
+            cursor.connection.cursor()
+            cursor.execute("SELECT last_insert_rowid() AS last_insert_rowid")
+            return cursor.fetchone()
+
     def get_config(self):
-        with sqlite3.connect(f"{self._DBFILE}") as connection:
+        with sqlite3.connect(self._DBFILE) as connection:
             cursor = connection.cursor()
             cursor.execute(
                 "SELECT key, integerValue, numericValue, realValue, textValue, blobValue FROM config"
@@ -56,7 +88,7 @@ class Database:
             return {x[0]: self._not_none(x[1:]) for x in cursor.fetchall()}
 
     def set_config(self, key: str, value: Any):
-        with sqlite3.connect(f"{self._DBFILE}") as connection:
+        with sqlite3.connect(self._DBFILE) as connection:
             cursor = connection.cursor()
             cursor.execute(
                 "REPLACE INTO config (key, integerValue, numericValue, realValue, textValue, blobValue) VALUES (?,?,?,?,?,?)",
